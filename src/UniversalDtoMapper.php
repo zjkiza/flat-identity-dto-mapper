@@ -9,15 +9,22 @@ use ZJKiza\FlatMapper\Adapter\ObjectAdapter;
 use ZJKiza\FlatMapper\Attribute\Column;
 use ZJKiza\FlatMapper\Attribute\ColumnPrefix;
 use ZJKiza\FlatMapper\Attribute\Identifier;
+use ZJKiza\FlatMapper\Attribute\Ignore;
 use ZJKiza\FlatMapper\Attribute\Transformer as TransformerAttribute;
 use ZJKiza\FlatMapper\Contract\AttributeAdapterInterface;
 use ZJKiza\FlatMapper\Contract\TransformerInterface;
 use ZJKiza\FlatMapper\Contract\NamingStrategyInterface;
+use ZJKiza\FlatMapper\Enum\Naming;
+use ZJKiza\FlatMapper\Exception\InvalidArrayKayException;
+use ZJKiza\FlatMapper\Exception\InvalidAttributeException;
 use ZJKiza\FlatMapper\Identity\IdentityMap;
 use ZJKiza\FlatMapper\Metadata\MetadataFactory;
 use ZJKiza\FlatMapper\Strategy\NamingStrategyFactory;
 use ZJKiza\FlatMapper\Transformer\Transformer;
 
+/**
+ * @psalm-suppress PropertyNotSetInConstructor
+ */
 final class UniversalDtoMapper
 {
     /** @var AttributeAdapterInterface[] */
@@ -37,13 +44,39 @@ final class UniversalDtoMapper
         $this->transformer = $transformer ?? new Transformer();
     }
 
+    /**
+     * @template T of object
+     *
+     * @param array<int, array<string, scalar|null>> $rows
+     * @param class-string<T> $dtoClass
+     *
+     * @return T[]
+     */
     public function map(array $rows, string $dtoClass, string $rootId): array
     {
+        $meta = MetadataFactory::get($dtoClass);
+        $dtoColumnPrefix = $meta->reflectionClass->getAttributes(ColumnPrefix::class)[0] ?? null;
+
+        InvalidAttributeException::throwIf(
+            condition: null === $dtoColumnPrefix,
+            message: \sprintf('The mandatory "ZJKiza\FlatMapper\Attribute\ColumnPrefix" attribute is not defined on the Dto class "%s"', $dtoClass)
+        );
+
         $this->identityMap = new IdentityMap();
 
         $grouped = [];
 
         foreach ($rows as $row) {
+
+            InvalidArrayKayException::throwIf(
+                condition: !isset($row[$rootId]),
+                message: \sprintf('Root ID "%s" is not exist in input array or cannot be null in row: %s', $rootId, \json_encode($row, JSON_THROW_ON_ERROR))
+            );
+
+            /**
+             * @psalm-suppress PossiblyNullArrayOffset
+             * @phpstan-ignore-next-line
+             */
             $grouped[$row[$rootId]][] = $row;
         }
 
@@ -60,20 +93,34 @@ final class UniversalDtoMapper
                     $dto = $this->hydrateScalar($row, $dtoClass);
                 }
 
+                InvalidArrayKayException::throwIf(
+                    condition: null === $dto,
+                    message: \sprintf('In column row "%s" there is no key name defined for scalar value in DTO class "%s".', \json_encode($row, JSON_THROW_ON_ERROR), $dtoClass)
+                );
+
+                /**
+                 * @psalm-suppress PossiblyNullArgument
+                 * @phpstan-ignore-next-line
+                 */
                 $this->hydrateNested($row, $dto);
             }
 
             $result[] = $dto;
         }
 
+        /** @var T[] */
         return $result;
     }
 
+    /**
+     * @param array<string, scalar|null> $row
+     * @param class-string $dtoClass
+     */
     public function hydrateScalar(
         array   $row,
         string  $dtoClass,
         ?string $forcedPrefix = null,
-        ?string $forcedNaming = null
+        ?Naming $forcedNaming = null
     ): ?object {
         $meta = MetadataFactory::get($dtoClass);
         $dto = $meta->reflectionClass->newInstanceWithoutConstructor();
@@ -81,8 +128,8 @@ final class UniversalDtoMapper
         $classPrefixAttr = $meta->reflectionClass->getAttributes(ColumnPrefix::class)[0] ?? null;
         $classPrefix = $classPrefixAttr?->newInstance();
 
-        $prefix = $forcedPrefix ?? ($classPrefix?->name ?? '');
-        $naming = $forcedNaming ?? ($classPrefix?->naming ?? 'snakeToCamel');
+        $prefix = $forcedPrefix ?? ($classPrefix->name ?? '');
+        $naming = $forcedNaming ?? ($classPrefix->naming ?? Naming::CamelToSnake);
         $namer = NamingStrategyFactory::create($naming);
 
         $hasValue = false;
@@ -93,6 +140,10 @@ final class UniversalDtoMapper
                 if ($adapter->supports($property)) {
                     continue 2;
                 }
+            }
+
+            if (!empty($property->getAttributes(Ignore::class))) {
+                continue;
             }
 
             $column = $this->getColumn($property, $namer, $prefix);
@@ -129,6 +180,9 @@ final class UniversalDtoMapper
         return $dto;
     }
 
+    /**
+     * @param array<string, scalar|null> $row
+     */
     public function hydrateNested(array $row, object $dto): void
     {
         $meta = MetadataFactory::get($dto::class);
@@ -148,11 +202,12 @@ final class UniversalDtoMapper
 
         foreach ($meta->properties as $property) {
             if (!empty($property->getAttributes(Identifier::class))) {
+                /** @phpstan-ignore-next-line  */
                 return (string)$property->getValue($dto);
             }
         }
 
-        throw new \RuntimeException('Identifier not found');
+        throw new InvalidAttributeException(\sprintf('Attribute Identifier not found in Dto class %s', $dto::class));
     }
 
     private function getColumn(\ReflectionProperty $property, NamingStrategyInterface $namer, string $prefix): string

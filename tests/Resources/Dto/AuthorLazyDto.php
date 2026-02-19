@@ -7,13 +7,14 @@ namespace ZJKiza\FlatMapper\Tests\Resources\Dto;
 use ZJKiza\FlatMapper\Attribute\Identifier;
 use ZJKiza\FlatMapper\Attribute\ObjectDto;
 use ZJKiza\FlatMapper\Enum\Naming;
+use ZJKiza\FlatMapper\Tests\Resources\Dto\AuthorImageDto;
 
-final class AuthorDto
+final class AuthorLazyDto
 {
     #[Identifier]
     public ?string $id;
     public ?string $name;
 
-    #[ObjectDto(className: AuthorImageDto::class, columnPrefix: 'author_image_', naming: Naming::CamelToSnake)]
-    public ?AuthorImageDto $image = null;
+    #[ObjectDto(className: AuthorImageLazyDto::class, columnPrefix: 'author_image_', naming: Naming::CamelToSnake)]
+    public ?AuthorImageLazyDto $image = null;
 }

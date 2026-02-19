@@ -7,6 +7,7 @@ namespace ZJKiza\FlatMapper\Tests\Resources\Dto;
 use ZJKiza\FlatMapper\Attribute\Collection;
 use ZJKiza\FlatMapper\Attribute\Column;
 use ZJKiza\FlatMapper\Attribute\Identifier;
+use ZJKiza\FlatMapper\Enum\Naming;
 
 final class AuthorImageDto implements \JsonSerializable
 {
@@ -16,7 +17,7 @@ final class AuthorImageDto implements \JsonSerializable
     #[Column('name')]
     public ?string $url = null;
 
-    #[Collection(className: TagDto::class, columnPrefix: 'author_image_tag_', naming: 'snakeToCamel', lazy: true)]
+    #[Collection(className: TagDto::class, columnPrefix: 'author_image_tag_', naming: Naming::CamelToSnake)]
     public iterable|null $tag = null;
 
     public function jsonSerialize(): array

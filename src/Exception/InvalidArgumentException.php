@@ -6,6 +6,6 @@ namespace ZJKiza\FlatMapper\Exception;
 
 use ZJKiza\FlatMapper\Contract\ExceptionInterface;
 
-final class InvalidObjectInstanceException extends \RuntimeException implements ExceptionInterface
+final class InvalidArgumentException extends \RuntimeException implements ExceptionInterface
 {
 }

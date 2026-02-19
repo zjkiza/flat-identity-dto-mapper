@@ -2,6 +2,8 @@ parameters:
     paths:
         - src
         - tests
+    excludePaths:
+        - tests/Resources/*
     level: max
     bootstrapFiles:
         - phpstan.bootstrap.php

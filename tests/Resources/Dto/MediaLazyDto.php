@@ -13,7 +13,7 @@ use ZJKiza\FlatMapper\Enum\Naming;
 use ZJKiza\FlatMapper\Transformer\UpperTransformer;
 
 #[ColumnPrefix(name: 'media_', naming: Naming::CamelToSnake)]
-final class MediaDto implements \JsonSerializable
+final class MediaLazyDto implements \JsonSerializable
 {
     #[Identifier]
     public ?string $id = null;
@@ -21,10 +21,10 @@ final class MediaDto implements \JsonSerializable
     #[Transformer(UpperTransformer::class)]
     public ?string $title = null;
 
-    #[ObjectDto(className: MediaImageDto::class, columnPrefix: 'media_image_', naming: Naming::CamelToSnake)]
-    public ?MediaImageDto $image = null;
+    #[ObjectDto(className: MediaImageLazyDto::class, columnPrefix: 'media_image_', naming: Naming::CamelToSnake)]
+    public ?MediaImageLazyDto $image = null;
 
-    #[Collection(className: AuthorDto::class, columnPrefix: 'media_author_', naming: Naming::CamelToSnake)]
+    #[Collection(className: AuthorLazyDto::class, columnPrefix: 'media_author_', naming: Naming::CamelToSnake, lazy: true)]
     public iterable|null $author = null;
 
     public function jsonSerialize(): array

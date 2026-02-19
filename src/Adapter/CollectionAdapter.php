@@ -9,13 +9,26 @@ use ZJKiza\FlatMapper\UniversalDtoMapper;
 use ZJKiza\FlatMapper\Attribute\Collection;
 use ZJKiza\FlatMapper\Contract\AttributeAdapterInterface;
 
+/**
+ * @psalm-suppress UnsupportedPropertyReferenceUsage
+ */
 final class CollectionAdapter implements AttributeAdapterInterface
 {
+    /**
+     * @var array<int, array<string, list<array<string, scalar|null>>>>
+     *
+     * [dtoObjectId][propertyName] => rowsBuffer
+     */
+    private static array $buffers = [];
+
     public function supports(\ReflectionProperty $property): bool
     {
         return !empty($property->getAttributes(Collection::class));
     }
 
+    /**
+     * @param array<string, scalar|null> $row
+     */
     public function map(
         \ReflectionProperty $property,
         array $row,
@@ -28,51 +41,68 @@ final class CollectionAdapter implements AttributeAdapterInterface
          * LAZY MODE initialized ONLY ONCE
          */
         if ($attr->lazy === true) {
+            $dtoId = \spl_object_id($dto);
+            $propName = $property->getName();
 
-            if ($property->getValue($dto) !== null) {
-                return;
+            // Buffer initialization with explicit type checking
+            if (!isset(self::$buffers[$dtoId])) {
+                self::$buffers[$dtoId] = [];
             }
 
-            $rowsBuffer = [];
+            if (!isset(self::$buffers[$dtoId][$propName])) {
+                self::$buffers[$dtoId][$propName] = [];
+            }
 
-            $property->setValue(
-                $dto,
-                new LazyCollection(
-                    function () use (
-                        &$rowsBuffer,
-                        $mapper,
-                        $attr
-                    ) {
-                        $collection = [];
+            /** @var list<array<string, scalar|null>> $buffer */
+            $buffer = &self::$buffers[$dtoId][$propName];
+            $buffer[] = $row;
 
-                        foreach ($rowsBuffer as $row) {
-                            $item = $mapper->hydrateScalar(
-                                $row,
-                                $attr->className,
-                                $attr->columnPrefix,
-                                $attr->naming
-                            );
+            // LazyCollection se kreira samo jednom
+            if ($property->getValue($dto) === null) {
+                $property->setValue(
+                    $dto,
+                    new LazyCollection(
+                        function () use ($dtoId, $propName, $mapper, $attr): array {
+                            /** @var list<array<string, scalar|null>> $rows */
+                            $rows = self::$buffers[$dtoId][$propName] ?? [];
+                            $collection = [];
 
-                            if ($item === null) {
-                                continue;
+                            foreach ($rows as $row) {
+                                /** @var array<string, scalar|null> $row */
+                                $item = $mapper->hydrateScalar(
+                                    $row,
+                                    $attr->className,
+                                    $attr->columnPrefix,
+                                    $attr->naming
+                                );
+
+                                if ($item === null) {
+                                    continue;
+                                }
+
+                                $id = $mapper->extractIdentifier($item);
+
+                                if (!isset($collection[$id])) {
+                                    $collection[$id] = $item;
+                                }
+
+                                /** @var object $collectionItem */
+                                $collectionItem = $collection[$id];
+                                $mapper->hydrateNested($row, $collectionItem);
                             }
 
-                            $id = $mapper->extractIdentifier($item);
+                            // cleanup buffer
+                            unset(self::$buffers[$dtoId][$propName]);
 
-                            if (!isset($collection[$id])) {
-                                $collection[$id] = $item;
+                            if (empty(self::$buffers[$dtoId])) {
+                                unset(self::$buffers[$dtoId]);
                             }
 
-                            $mapper->hydrateNested($row, $collection[$id]);
+                            return \array_values($collection);
                         }
-
-                        return \array_values($collection);
-                    }
-                )
-            );
-
-            // IMPORTANT: we always collect rows
-            $rowsBuffer[] = $row;
+                    )
+                );
+            }
 
             return;
         }
@@ -88,15 +118,22 @@ final class CollectionAdapter implements AttributeAdapterInterface
             return;
         }
 
-        $collection = $property->getValue($dto) ?? [];
+        /** @var array<string, object>|null $collection */
+        $collection = $property->getValue($dto);
+
+        if ($collection === null) {
+            $collection = [];
+        }
+
         $id = $mapper->extractIdentifier($item);
 
         if (!isset($collection[$id])) {
             $collection[$id] = $item;
         }
 
-        /** NOW just map the NESTED objects */
-        $mapper->hydrateNested($row, $collection[$id]);
+        /** @var object $collectionItem */
+        $collectionItem = $collection[$id];
+        $mapper->hydrateNested($row, $collectionItem);
         $property->setValue($dto, $collection);
     }
 }

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace ZJKiza\FlatMapper\Exception;
 
 use ZJKiza\FlatMapper\Contract\DataTransformerInterface;
+use ZJKiza\FlatMapper\Contract\ExceptionInterface;
 
-final class TransformationFailedException extends \RuntimeException
+final class TransformationFailedException extends \RuntimeException implements ExceptionInterface
 {
     public function __construct(string $message, ?\Throwable $previous = null)
     {

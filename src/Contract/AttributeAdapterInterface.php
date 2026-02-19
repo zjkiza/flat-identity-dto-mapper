@@ -10,6 +10,9 @@ interface AttributeAdapterInterface
 {
     public function supports(\ReflectionProperty $property): bool;
 
+    /**
+     * @param array<string, scalar|null> $row
+     */
     public function map(
         \ReflectionProperty $property,
         array $row,

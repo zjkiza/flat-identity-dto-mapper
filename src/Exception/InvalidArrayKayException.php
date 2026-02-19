@@ -6,6 +6,7 @@ namespace ZJKiza\FlatMapper\Exception;
 
 use ZJKiza\FlatMapper\Contract\ExceptionInterface;
 
-final class InvalidObjectInstanceException extends \RuntimeException implements ExceptionInterface
+final class InvalidArrayKayException extends \RuntimeException implements ExceptionInterface
 {
+    use ThrowIfTrait;
 }

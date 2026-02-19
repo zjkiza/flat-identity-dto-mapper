@@ -38,10 +38,6 @@ final class Transformer implements TransformerInterface
             throw new InvalidObjectInstanceException(\sprintf('Object with instance "%s" does not exist! Check that you have imported that instance into a Mapper class constructor.', $transformerClass));
         }
 
-        if (!$this->transformers[$transformerClass] instanceof DataTransformerInterface) {
-            throw new InvalidObjectInstanceException(\sprintf('Incorrect instance class. "%s" does not implement the %s', $transformerClass, DataTransformerInterface::class));
-        }
-
         return $this->transformers[$transformerClass];
     }
 }

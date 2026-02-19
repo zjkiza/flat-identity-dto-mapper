@@ -15,6 +15,9 @@ final class ObjectAdapter implements AttributeAdapterInterface
         return !empty($property->getAttributes(ObjectDto::class));
     }
 
+    /**
+     * @param array<string, scalar|null> $row
+     */
     public function map(
         \ReflectionProperty $property,
         array $row,
@@ -32,8 +35,7 @@ final class ObjectAdapter implements AttributeAdapterInterface
         );
 
         /**
-         * KLJUČNA ZAŠTITA:
-         * Ne prepisuj već mapiran objekat ako novi mapping vrati null
+         * KEY PROTECTION: Do not overwrite an already mapped object if the new mapping returns null
          */
         if ($object !== null) {
             $mapper->hydrateNested($row, $object);

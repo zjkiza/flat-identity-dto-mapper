@@ -77,6 +77,18 @@ final class ArrayMediaDto implements JsonSerializable
 
 ```
 
+## Ignore
+
+If a scalar property should be ignored and not mapped to the DTO, insert the Ignore attribute. 
+For properties of the Object/iterable type, you can only insert the necessary annotation that is provided for them.
+
+Example:
+```php
+    #[Ignore()]
+    public ?string $title = null;
+```
+
+
 ## Transformers
 
 Transformers allow value normalization during mapping.

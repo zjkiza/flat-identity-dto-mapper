@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace ZJKiza\FlatMapper\Strategy;
 
 use ZJKiza\FlatMapper\Contract\NamingStrategyInterface;
+use ZJKiza\FlatMapper\Enum\Naming;
 
 final class NamingStrategyFactory
 {
-    public static function create(string $type): NamingStrategyInterface
+    public static function create(Naming $type): NamingStrategyInterface
     {
         return match ($type) {
-            'snakeToCamel' => new SnakeToCamelStrategy(),
-            default => throw new \InvalidArgumentException("Unknown naming strategy $type")
+            Naming::SnakeToCamel => new SnakeToCamelStrategy(),
+            Naming::CamelToSnake => new CamelToSnakeStrategy(),
         };
     }
 }

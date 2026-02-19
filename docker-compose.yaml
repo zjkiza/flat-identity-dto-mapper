@@ -16,6 +16,10 @@ services:
             - host.docker.internal:host-gateway
         env_file:
             - .env
+
+        environment:
+          COMPOSER_ROOT_VERSION: dev-main
+
         container_name: php_flat_identity_dto_mapper
         hostname: php_flat_identity_dto_mapper
         volumes:

@@ -9,8 +9,9 @@ use ZJKiza\FlatMapper\Attribute\Column;
 use ZJKiza\FlatMapper\Attribute\Identifier;
 use JsonSerializable;
 use ZJKiza\FlatMapper\Enum\Naming;
+use ZJKiza\FlatMapper\Tests\Resources\Dto\TagDto;
 
-final class MediaImageDto implements JsonSerializable
+final class MediaImageLazyDto implements JsonSerializable
 {
     #[Identifier]
     public ?string $id = null;
@@ -18,7 +19,7 @@ final class MediaImageDto implements JsonSerializable
     #[Column('name')]
     public ?string $url = null;
 
-    #[Collection(className: TagDto::class, columnPrefix: 'media_image_tag_', naming: Naming::CamelToSnake)]
+    #[Collection(className: TagDto::class, columnPrefix: 'media_image_tag_', naming: Naming::CamelToSnake, lazy: true)]
     public iterable|null $tag = null;
 
     public function jsonSerialize(): array
