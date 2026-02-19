@@ -1,0 +1,11 @@
+.php-cs-fixer.cache
+.phpunit.result.cache
+
+/.idea
+/var
+/build
+/vendor
+/bin/__pycache__/
+/bin/utility/__pycache__/
+.env
+composer.lock

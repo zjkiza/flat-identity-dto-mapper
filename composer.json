@@ -1,0 +1,42 @@
+{
+    "name": "zjkiza/flat-dto-identity-mapper",
+    "description": "A flexible HTML truncation service that safely truncates HTML content without breaking the tag structure. Enable different ways of measuring length by bytes or by characters.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Zoran Jankovic",
+            "email": "zjkiza@gmail.com"
+        }
+    ],
+    "require": {
+      "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "ZJKiza\\FlatMapper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ZJKiza\\FlatMapper\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.52",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "rector/rector": "^2.0",
+        "vimeo/psalm": "^6.13",
+        "phpunit/phpunit": "^12.4",
+        "psalm/plugin-phpunit": "^0.19"
+    },
+    "scripts": {
+        "phpunit": "XDEBUG_MODE=coverage vendor/bin/phpunit --testdox --coverage-html ./build/phpunit",
+        "phpstan": "vendor/bin/phpstan analyse -v",
+        "psalm": "vendor/bin/psalm --threads=8 --no-diff --no-cache",
+        "rector": "vendor/bin/rector",
+        "php-cs-fixer": "vendor/bin/php-cs-fixer fix --diff --verbose --show-progress=dots --allow-risky=yes"
+    }
+}
