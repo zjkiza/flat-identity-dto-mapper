@@ -1,6 +1,6 @@
 {
     "name": "zjkiza/flat-dto-identity-mapper",
-    "description": "A flexible HTML truncation service that safely truncates HTML content without breaking the tag structure. Enable different ways of measuring length by bytes or by characters.",
+    "description": "Build rich DTO graphs from flat SQL result sets — without an ORM. A high-performance mapper that converts flat database/array rows into structured DTO graphs using identity mapping and attribute adapters.",
     "type": "library",
     "license": "MIT",
     "authors": [
