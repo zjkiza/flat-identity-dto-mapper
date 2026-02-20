@@ -15,9 +15,16 @@ final class Transformer implements TransformerInterface
      */
     private array $transformers = [];
 
-    public function __construct()
+    /**
+     * @param DataTransformerInterface[] $transformers
+     */
+    public function __construct(iterable $transformers = [])
     {
         $this->addTransformer(new UpperTransformer());
+
+        foreach ($transformers as $transformer) {
+            $this->addTransformer($transformer);
+        }
     }
 
     public function transform(mixed $value, string $transformerClass): mixed

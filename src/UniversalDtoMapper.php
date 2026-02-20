@@ -14,6 +14,7 @@ use ZJKiza\FlatMapper\Attribute\Transformer as TransformerAttribute;
 use ZJKiza\FlatMapper\Contract\AttributeAdapterInterface;
 use ZJKiza\FlatMapper\Contract\TransformerInterface;
 use ZJKiza\FlatMapper\Contract\NamingStrategyInterface;
+use ZJKiza\FlatMapper\Contract\UniversalDtoMapperInterface;
 use ZJKiza\FlatMapper\Enum\Naming;
 use ZJKiza\FlatMapper\Exception\InvalidArrayKayException;
 use ZJKiza\FlatMapper\Exception\InvalidAttributeException;
@@ -25,7 +26,7 @@ use ZJKiza\FlatMapper\Transformer\Transformer;
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  */
-final class UniversalDtoMapper
+final class UniversalDtoMapper implements UniversalDtoMapperInterface
 {
     /** @var AttributeAdapterInterface[] */
     private array $adapters;
