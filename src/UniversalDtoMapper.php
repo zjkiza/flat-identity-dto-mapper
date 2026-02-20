@@ -19,6 +19,7 @@ use ZJKiza\FlatMapper\Enum\Naming;
 use ZJKiza\FlatMapper\Exception\InvalidArrayKayException;
 use ZJKiza\FlatMapper\Exception\InvalidAttributeException;
 use ZJKiza\FlatMapper\Identity\IdentityMap;
+use ZJKiza\FlatMapper\Metadata\DtoMetadata;
 use ZJKiza\FlatMapper\Metadata\MetadataFactory;
 use ZJKiza\FlatMapper\Strategy\NamingStrategyFactory;
 use ZJKiza\FlatMapper\Transformer\Transformer;
@@ -53,6 +54,7 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
     public function map(array $rows, string $dtoClass, string $rootId): array
     {
         $meta = MetadataFactory::get($dtoClass);
+        // TODO prebaciti u DtoMetadata i optimizovati da se ne koristi reflection svaki put
         $dtoColumnPrefix = $meta->reflectionClass->getAttributes(ColumnPrefix::class)[0] ?? null;
 
         InvalidAttributeException::throwIf(
@@ -77,9 +79,6 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
              */
             $grouped[$row[$rootId]][] = $row;
         }
-
-        // Freeing memory - the original $rows are no longer needed
-        unset($rows);
 
         $result = [];
 
@@ -120,10 +119,10 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
         ?string $forcedPrefix = null,
         ?Naming $forcedNaming = null
     ): ?object {
-        $meta = MetadataFactory::get($dtoClass);
-        $dto = $meta->reflectionClass->newInstanceWithoutConstructor();
+        $dtoMetadata = MetadataFactory::get($dtoClass);
+        $dto = $dtoMetadata->reflectionClass->newInstanceWithoutConstructor();
 
-        $classPrefixAttr = $meta->reflectionClass->getAttributes(ColumnPrefix::class)[0] ?? null;
+        $classPrefixAttr = $dtoMetadata->reflectionClass->getAttributes(ColumnPrefix::class)[0] ?? null;
         $classPrefix = $classPrefixAttr?->newInstance();
 
         $prefix = $forcedPrefix ?? ($classPrefix->name ?? '');
@@ -133,18 +132,18 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
         $hasValue = false;
         $id = null;
 
-        foreach ($meta->properties as $property) {
+        foreach ($dtoMetadata->properties as $property) {
             foreach ($this->adapters as $adapter) {
                 if ($adapter->supports($property)) {
                     continue 2;
                 }
             }
 
-            if ((bool)$property->getAttributes(Ignore::class)) {
+            if ($dtoMetadata->hasIgnore($property->getName())) {
                 continue;
             }
 
-            $column = $this->getColumn($property, $namer, $prefix);
+            $column = $this->getColumn($property, $namer, $prefix, $dtoMetadata);
 
             if (!\array_key_exists($column, $row)) {
                 continue;
@@ -156,11 +155,11 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
                 $hasValue = true;
             }
 
-            if ((bool)$property->getAttributes(Identifier::class)) {
+            if ($dtoMetadata->hasIdentifier($property->getName())) {
                 $id = (string)$value;
             }
 
-            $value = $this->transformerValue($property, $value);
+            $value = $this->transformerValue($property, $value, $dtoMetadata);
 
             $property->setValue($dto, $value);
         }
@@ -208,22 +207,26 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
         throw new InvalidAttributeException(\sprintf('Attribute Identifier not found in Dto class %s', $dto::class));
     }
 
-    private function getColumn(\ReflectionProperty $property, NamingStrategyInterface $namer, string $prefix): string
+    private function getColumn(\ReflectionProperty $property, NamingStrategyInterface $namer, string $prefix, DtoMetadata $metadata): string
     {
-        $columnAttr = $property->getAttributes(Column::class)[0] ?? null;
-        $columnName = $columnAttr
-            ? $columnAttr->newInstance()->name
-            : $namer->convert($property->getName());
+        $propertyName = $property->getName();
 
-        return \sprintf('%s%s', $prefix, $columnName);
+        if ($metadata->hasColumnAttribute($propertyName)) {
+            $columnName = $metadata->getColumnNameFromAttribute($propertyName);
+        } else {
+            $columnName = $namer->convert($propertyName);
+        }
+
+        return $prefix . $columnName;
     }
 
-    private function transformerValue(\ReflectionProperty $property, mixed $value): mixed
+    private function transformerValue(\ReflectionProperty $property, mixed $value, DtoMetadata $metadata): mixed
     {
-        $transformerAttr = $property->getAttributes(TransformerAttribute::class)[0] ?? null;
+        $propertyName = $property->getName();
 
-        if ($transformerAttr) {
-            $transformerName = $transformerAttr->newInstance()->name;
+        $transformerName = $metadata->getTransformerName($propertyName);
+
+        if ($transformerName) {
             $value = $this->transformer->transform($value, $transformerName);
         }
 
