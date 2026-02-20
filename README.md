@@ -286,23 +286,31 @@ The mapper throws specific exceptions for common errors:
 
 ## Symfony integration (example)
 
+Below is a minimal example for registering the mapper as services in `services.yaml`.
+
+```yaml
+services:
+
+  ZJKiza\FlatMapper\UniversalDtoMapper: ~
+
+  ZJKiza\FlatMapper\Contract\UniversalDtoMapperInterface: '@ZJKiza\FlatMapper\UniversalDtoMapper'
+```
+
+
 Below is a minimal example for registering the mapper and a custom transformer as services in `services.yaml`.
 
 ```yaml
 services:
 
-  App\Transformer\TrimAndUpperTransformer:
-    tags: ['app.dto_transformer']
+  App\Transformer\LowercaseTransformer: ~
 
-  # Transformer servis
-  ZJKiza\FlatMapper\Transformer:
-    arguments:
-        $transformers: !tagged_iterator app.dto_transformer
+  ZJKiza\FlatMapper\Transformer\Transformer:
+    calls:
+      - [addTransformer, ['@App\Transformer\LowercaseTransformer']]
 
-  # Mapper
   ZJKiza\FlatMapper\UniversalDtoMapper:
     arguments:
-        $transformer: '@App\Transformer\Transformer'
+      $transformer: '@ZJKiza\FlatMapper\Transformer\Transformer'
 
   # Alias the interface to the implementation for easier injection
   ZJKiza\FlatMapper\Contract\UniversalDtoMapperInterface: '@ZJKiza\FlatMapper\UniversalDtoMapper'
@@ -323,12 +331,12 @@ public function index(UniversalDtoMapper $mapper)
 
 ## Laravel integration (example)
 
-You can register the mapper and custom transformers in a ServiceProvider (example for Laravel 8+):
+You can register the mapper in a ServiceProvider (example for Laravel 8+):
 
 ```php
+namespace App\Providers;
+
 use Illuminate\Support\ServiceProvider;
-use App\Transformer\TrimAndUpperTransformer;
-use ZJKiza\FlatMapper\Transformer;
 use ZJKiza\FlatMapper\UniversalDtoMapper;
 use ZJKiza\FlatMapper\Contract\UniversalDtoMapperInterface;
 
@@ -336,18 +344,50 @@ class MapperServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->app->tag(TrimAndUpperTransformer::class, 'flat_dto_transformer');
+        $this->app->singleton(UniversalDtoMapper::class);
+        
+        $this->app->alias(
+            UniversalDtoMapper::class, 
+            UniversalDtoMapperInterface::class
+        );
+    }
+}
+```
+
+
+You can register the mapper and custom transformers in a ServiceProvider (example for Laravel 8+):
+
+```php
+use Illuminate\Support\ServiceProvider;
+use App\Transformer\TrimAndUpperTransformer;
+use ZJKiza\FlatMapper\Transformer\Transformer;
+use ZJKiza\FlatMapper\UniversalDtoMapper;
+use ZJKiza\FlatMapper\Contract\UniversalDtoMapperInterface;
+
+class MapperServiceProvider extends ServiceProvider
+{
+    public function register()
+    {
+        $this->app->singleton(LowercaseTransformer::class);
         
         $this->app->singleton(Transformer::class, function ($app) {
-            $transformers = $app->tagged('flat_dto_transformer');
-            return new Transformer($transformers);
+            $transformer = new Transformer();
+            $transformer->addTransformer(
+                $app->make(LowercaseTransformer::class)
+            );
+            return $transformer;
         });
         
         $this->app->singleton(UniversalDtoMapper::class, function ($app) {
-            return new UniversalDtoMapper($app->make(Transformer::class));
+            return new UniversalDtoMapper(
+                $app->make(Transformer::class)
+            );
         });
         
-        $this->app->alias(UniversalDtoMapper::class, UniversalDtoMapperInterface::class);
+        $this->app->alias(
+            UniversalDtoMapper::class, 
+            UniversalDtoMapperInterface::class
+        );
     }
 }
 ```
