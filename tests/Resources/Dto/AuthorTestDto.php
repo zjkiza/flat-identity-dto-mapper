@@ -9,9 +9,9 @@ use ZJKiza\FlatMapper\Attribute\Identifier;
 final class AuthorTestDto
 {
     #[Identifier]
-    public ?string $id;
+    public ?string $id = null;
 
-    public ?string $firstName;
+    public ?string $firstName = null;
 
-    public ?string $lastName;
+    public ?string $lastName = null;
 }

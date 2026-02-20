@@ -12,8 +12,8 @@ use ZJKiza\FlatMapper\Tests\Resources\Dto\AuthorImageDto;
 final class AuthorLazyDto
 {
     #[Identifier]
-    public ?string $id;
-    public ?string $name;
+    public ?string $id = null;
+    public ?string $name = null;
 
     #[ObjectDto(className: AuthorImageLazyDto::class, columnPrefix: 'author_image_', naming: Naming::CamelToSnake)]
     public ?AuthorImageLazyDto $image = null;

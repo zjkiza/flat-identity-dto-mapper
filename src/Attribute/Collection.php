@@ -12,9 +12,6 @@ final class Collection implements AttributeInterface
 {
     /**
      * @param class-string $className
-     * @param string $columnPrefix
-     * @param Naming $naming
-     * @param bool $lazy
      */
     public function __construct(
         public string $className,

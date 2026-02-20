@@ -12,7 +12,7 @@ final class ObjectAdapter implements AttributeAdapterInterface
 {
     public function supports(\ReflectionProperty $property): bool
     {
-        return !empty($property->getAttributes(ObjectDto::class));
+        return (bool)$property->getAttributes(ObjectDto::class);
     }
 
     /**
@@ -37,7 +37,7 @@ final class ObjectAdapter implements AttributeAdapterInterface
         /**
          * KEY PROTECTION: Do not overwrite an already mapped object if the new mapping returns null
          */
-        if ($object !== null) {
+        if (null !== $object) {
             $mapper->hydrateNested($row, $object);
             $property->setValue($dto, $object);
         }

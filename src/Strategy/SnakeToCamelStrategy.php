@@ -13,11 +13,10 @@ final class SnakeToCamelStrategy implements NamingStrategyInterface
     {
         $string = \mb_strtolower($column);
 
+        /** @psalm-suppress RedundantCastGivenDocblockType */
         $camel = \preg_replace_callback(
             '/_([\p{L}])/u',
-            static function ($matches) {
-                return \mb_strtoupper($matches[1]);
-            },
+            static fn ($matches) => \mb_strtoupper((string) $matches[1]),
             $string
         );
 

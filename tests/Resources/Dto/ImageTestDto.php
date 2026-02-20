@@ -9,7 +9,7 @@ use ZJKiza\FlatMapper\Attribute\Identifier;
 final class ImageTestDto
 {
     #[Identifier]
-    public ?string $id;
+    public ?string $id = null;
 
-    public ?string $name;
+    public ?string $name = null;
 }

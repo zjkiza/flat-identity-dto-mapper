@@ -12,8 +12,6 @@ final class ObjectDto implements AttributeInterface
 {
     /**
      * @param class-string $className
-     * @param string $columnPrefix
-     * @param Naming $naming
      */
     public function __construct(
         public string $className,

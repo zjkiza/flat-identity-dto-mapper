@@ -23,7 +23,7 @@ final class CollectionAdapter implements AttributeAdapterInterface
 
     public function supports(\ReflectionProperty $property): bool
     {
-        return !empty($property->getAttributes(Collection::class));
+        return (bool)$property->getAttributes(Collection::class);
     }
 
     /**
@@ -58,7 +58,7 @@ final class CollectionAdapter implements AttributeAdapterInterface
             $buffer[] = $row;
 
             // LazyCollection se kreira samo jednom
-            if ($property->getValue($dto) === null) {
+            if (null === $property->getValue($dto)) {
                 $property->setValue(
                     $dto,
                     new LazyCollection(
@@ -76,7 +76,7 @@ final class CollectionAdapter implements AttributeAdapterInterface
                                     $attr->naming
                                 );
 
-                                if ($item === null) {
+                                if (null === $item) {
                                     continue;
                                 }
 
@@ -86,7 +86,6 @@ final class CollectionAdapter implements AttributeAdapterInterface
                                     $collection[$id] = $item;
                                 }
 
-                                /** @var object $collectionItem */
                                 $collectionItem = $collection[$id];
                                 $mapper->hydrateNested($row, $collectionItem);
                             }
@@ -94,7 +93,7 @@ final class CollectionAdapter implements AttributeAdapterInterface
                             // cleanup buffer
                             unset(self::$buffers[$dtoId][$propName]);
 
-                            if (empty(self::$buffers[$dtoId])) {
+                            if (false === (bool)self::$buffers[$dtoId]) {
                                 unset(self::$buffers[$dtoId]);
                             }
 
@@ -114,14 +113,14 @@ final class CollectionAdapter implements AttributeAdapterInterface
             $attr->naming
         );
 
-        if ($item === null) {
+        if (null === $item) {
             return;
         }
 
         /** @var array<string, object>|null $collection */
         $collection = $property->getValue($dto);
 
-        if ($collection === null) {
+        if (null === $collection) {
             $collection = [];
         }
 

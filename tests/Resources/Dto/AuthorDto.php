@@ -11,8 +11,8 @@ use ZJKiza\FlatMapper\Enum\Naming;
 final class AuthorDto
 {
     #[Identifier]
-    public ?string $id;
-    public ?string $name;
+    public ?string $id = null;
+    public ?string $name = null;
 
     #[ObjectDto(className: AuthorImageDto::class, columnPrefix: 'author_image_', naming: Naming::CamelToSnake)]
     public ?AuthorImageDto $image = null;

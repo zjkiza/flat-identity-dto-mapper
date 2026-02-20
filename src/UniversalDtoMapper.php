@@ -29,20 +29,17 @@ use ZJKiza\FlatMapper\Transformer\Transformer;
 final class UniversalDtoMapper implements UniversalDtoMapperInterface
 {
     /** @var AttributeAdapterInterface[] */
-    private array $adapters;
+    private readonly array $adapters;
 
     private IdentityMap $identityMap;
 
-    private TransformerInterface $transformer;
-
-    public function __construct(?TransformerInterface $transformer = null)
-    {
+    public function __construct(
+        private readonly TransformerInterface $transformer = new Transformer()
+    ) {
         $this->adapters = [
             new ObjectAdapter(),
             new CollectionAdapter(),
         ];
-
-        $this->transformer = $transformer ?? new Transformer();
     }
 
     /**
@@ -143,7 +140,7 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
                 }
             }
 
-            if (!empty($property->getAttributes(Ignore::class))) {
+            if ((bool)$property->getAttributes(Ignore::class)) {
                 continue;
             }
 
@@ -155,11 +152,11 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
 
             $value = $row[$column];
 
-            if ($value !== null) {
+            if (null !== $value) {
                 $hasValue = true;
             }
 
-            if (!empty($property->getAttributes(Identifier::class))) {
+            if ((bool)$property->getAttributes(Identifier::class)) {
                 $id = (string)$value;
             }
 
@@ -168,7 +165,7 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
             $property->setValue($dto, $value);
         }
 
-        if (!$hasValue || $id === null) {
+        if (!$hasValue || null === $id) {
             return null;
         }
 
@@ -202,7 +199,7 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
         $meta = MetadataFactory::get($dto::class);
 
         foreach ($meta->properties as $property) {
-            if (!empty($property->getAttributes(Identifier::class))) {
+            if ((bool)$property->getAttributes(Identifier::class)) {
                 /** @phpstan-ignore-next-line  */
                 return (string)$property->getValue($dto);
             }
