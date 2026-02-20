@@ -1,5 +1,5 @@
 {
-    "name": "zjkiza/flat-dto-identity-mapper",
+    "name": "zjkiza/flat-identity-dto-mapper",
     "description": "Build rich DTO graphs from flat SQL result sets — without an ORM. A high-performance mapper that converts flat database/array rows into structured DTO graphs using identity mapping and attribute adapters.",
     "type": "library",
     "license": "MIT",
@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-      "php": ">=8.2"
+      "php": "^8.2"
     },
     "autoload": {
         "psr-4": {
@@ -24,13 +24,18 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.52",
-        "phpstan/phpstan": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "phpstan/phpstan-symfony": "^2.0",
-        "rector/rector": "^2.0",
-        "vimeo/psalm": "^6.13",
-        "phpunit/phpunit": "^12.4",
-        "psalm/plugin-phpunit": "^0.19"
+        "phpstan/phpstan": "^1.11",
+        "phpstan/phpstan-phpunit": "^1.4",
+        "phpstan/phpstan-symfony": "^1.4",
+        "rector/rector": "^1.2",
+        "vimeo/psalm": "^5.26",
+        "phpunit/phpunit": "^10.5",
+        "psalm/plugin-phpunit": "^0.18"
+    },
+    "config": {
+      "platform": {
+        "php": "8.2.0"
+      }
     },
     "scripts": {
         "phpunit": "XDEBUG_MODE=coverage vendor/bin/phpunit --testdox --coverage-html ./build/phpunit",
