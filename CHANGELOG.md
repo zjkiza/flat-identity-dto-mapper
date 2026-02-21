@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0]
+- Code speedup by 18%
+
 ## [0.6.1]
 Fixed
 - Correction of documentation for use in Symfony/Laravel framework 
