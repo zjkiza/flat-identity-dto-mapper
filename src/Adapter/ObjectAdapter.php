@@ -10,9 +10,9 @@ use ZJKiza\FlatMapper\Contract\AttributeAdapterInterface;
 
 final class ObjectAdapter implements AttributeAdapterInterface
 {
-    public function supports(\ReflectionProperty $property): bool
+    public function indexKay(): string
     {
-        return (bool)$property->getAttributes(ObjectDto::class);
+        return ObjectDto::class;
     }
 
     /**

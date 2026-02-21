@@ -8,7 +8,7 @@ use ZJKiza\FlatMapper\UniversalDtoMapper;
 
 interface AttributeAdapterInterface
 {
-    public function supports(\ReflectionProperty $property): bool;
+    public function indexKay(): string;
 
     /**
      * @param array<string, scalar|null> $row

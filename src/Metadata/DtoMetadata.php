@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace ZJKiza\FlatMapper\Metadata;
 
 use ZJKiza\FlatMapper\Attribute\Column;
+use ZJKiza\FlatMapper\Attribute\ColumnPrefix;
 use ZJKiza\FlatMapper\Attribute\Identifier;
 use ZJKiza\FlatMapper\Attribute\Ignore;
 use ZJKiza\FlatMapper\Attribute\Transformer;
 
 /**
  * @template T of object
+ *
+ * @psalm-suppress PropertyNotSetInConstructor
  */
 final class DtoMetadata
 {
@@ -26,6 +29,9 @@ final class DtoMetadata
     /** @var array<string, string|null> */
     private array $transformerAttributes;
 
+    /** @var \ReflectionAttribute<ColumnPrefix>|null */
+    private readonly \ReflectionAttribute|null $columnPrefix;
+
     /**
      * @param \ReflectionClass<T> $reflectionClass
      * @param \ReflectionProperty[] $properties
@@ -35,6 +41,9 @@ final class DtoMetadata
         /** @var \ReflectionProperty[] */
         public array            $properties
     ) {
+
+        $this->columnPrefix = $reflectionClass->getAttributes(ColumnPrefix::class)[0] ?? null;
+
         // Adding caching attribute get acceleration 2.4 %
         foreach ($properties as $property) {
             $name = $property->getName();
@@ -49,6 +58,17 @@ final class DtoMetadata
             $transformerAttr = $property->getAttributes(Transformer::class)[0] ?? null;
             $this->transformerAttributes[$name] = $transformerAttr?->newInstance()->name;
         }
+    }
+
+    public function hasColumnPrefix(): bool
+    {
+        return  $this->columnPrefix instanceof \ReflectionAttribute;
+    }
+
+    public function getColumnPrefix(): ?ColumnPrefix
+    {
+        /** @var  ColumnPrefix|null */
+        return $this->columnPrefix?->newInstance();
     }
 
     public function hasColumnAttribute(string $propertyName): bool

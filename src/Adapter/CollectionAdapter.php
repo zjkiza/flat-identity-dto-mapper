@@ -21,9 +21,9 @@ final class CollectionAdapter implements AttributeAdapterInterface
      */
     private static array $buffers = [];
 
-    public function supports(\ReflectionProperty $property): bool
+    public function indexKay(): string
     {
-        return (bool)$property->getAttributes(Collection::class);
+        return Collection::class;
     }
 
     /**
