@@ -12,6 +12,8 @@ services:
                 PHP_XDEBUG_REMOTE_PORT:     ${PHP_XDEBUG_REMOTE_PORT}
                 PHP_XDEBUG_REMOTE_ADDRESS:  ${PHP_XDEBUG_REMOTE_ADDRESS}
                 PHP_XDEBUG_IDEKEY:          ${PHP_XDEBUG_IDEKEY}
+                OPCACHE_ENABLE:             ${OPCACHE_ENABLE}
+                OPCACHE_ENABLE_CLI:         ${OPCACHE_ENABLE_CLI}
         extra_hosts:
             - host.docker.internal:host-gateway
         env_file:

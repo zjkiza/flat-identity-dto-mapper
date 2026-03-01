@@ -1,0 +1,8 @@
+// test ge je ime u promenljivoj camelCase
+// test ge je ime u promenljivoj snakeCase
+
+// Test sa novim dodatim transformerom
+// test kada se poziva transformer koji ne postoji
+
+// test sa ignore attributom
+

@@ -123,17 +123,21 @@ $rows = \generateRows($items);
 echo "\n".'Benchmarking: 15000 rows to process (5000 media, 500 tags, 500 authors and 500 images)' . "\n";
 echo '5000 media with 1 object image and 2 relations of 3 rows of authors and tags' . "\n\n";
 
-\benchmark(static function () use ($rows): void {
+ \benchmark(static function () use ($rows): void {
     $mapper = new UniversalDtoMapper();
     $mapper->map($rows, MediaTestScalarDto::class, 'media_id');
-}, 'UniversalDtoMapper only scalar (Average Time: 0.130 s | Memory: 2 MB)');
+}, 'Only scalar (Average Time: 0.130 s | The Best: 0.128 s | Memory: 2 MB)');
 
+//for ($i = 0; $i < 10; $i++) {
 \benchmark(static function () use ($rows): void {
     $mapper = new UniversalDtoMapper();
     $mapper->map($rows, MediaTestDto::class, 'media_id');
-}, 'UniversalDtoMapper with 1 object image and 2 relations of 3 rows of authors and images (Average Time: 0.697 s | Memory: 6 MB)');
+}, 'With 1 object image and 2 relations of 3 rows of authors and images (Average Time: 0.607 s | The Best: 0.597 s | Memory: 6 MB)');
+//}
 
+//for ($i = 0; $i < 10; $i++) {
 \benchmark(static function () use ($rows): void {
     $mapper = new UniversalDtoMapper();
     $mapper->map($rows, MediaTestLazyDto::class, 'media_id');
-}, 'UniversalDtoMapper with 1 object image and 2 lazy relations of 3 rows of authors and images (Average Time: 0.405 s | Memory: 16 MB)');
+}, 'With 1 object image and 2 lazy relations of 3 rows of authors and images (Average Time: 0.385 s | The Best: 0.367 s | Memory: 16 MB)');
+//}

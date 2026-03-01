@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0]
+- Micro code optimize
+- Added support that input data besides array can also be Traversable. Support for iterable.
+
+Development:
+- Fix docker container for opcache for development
+
 ## [1.0.0]
 - Code speedup by 18%
 

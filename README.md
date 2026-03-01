@@ -1,7 +1,7 @@
 # Flat Identity DTO Mapper
 
 Build rich DTO graphs from flat SQL result sets — without an ORM.
-A high-performance mapper that converts flat database/array rows into structured DTO graphs using identity mapping and attribute adapters.
+A high-performance mapper that converts flat database/iterables rows into structured DTO graphs using identity mapping and attribute adapters.
 
 
 ## Key features
@@ -34,7 +34,7 @@ composer install
 
 ## Quickstart
 
-This mapper expects a flat array of associative rows (for example the result of a SQL JOIN) and a DTO class annotated with attributes which describe how columns map to DTO properties.
+This mapper expects a flat iterables of associative rows (for example the result of a SQL JOIN) and a DTO class annotated with attributes which describe how columns map to DTO properties.
 
 Important: the root DTO MUST define a `ColumnPrefix` attribute — this tells the mapper which column prefixes to use when extracting scalar values for that DTO and its nested children.
 
@@ -100,12 +100,20 @@ class MediaRepository extends ServiceEntityRepository
         parent::__construct($registry, AbstractMedia::class);
     }
     
-    public function getRows(): array
+    public function getRowsArray(): array
     {
         $sql = 'SELECT ...'; // same SQL as above
         $stmt = $this->entityManager->getConnection()->executeQuery($sql);
         
         return $stmt->fetchAllAssociative(); // flat associative arrays
+    }
+    
+        public function getRowsTraversable(): Traversable
+    {
+        $sql = 'SELECT ...'; // same SQL as above
+        $stmt = $this->entityManager->getConnection()->executeQuery($sql);
+        
+        return $stmt->iterateAssociative(); // flat associative arrays
     }
 }
 
@@ -115,7 +123,7 @@ class TestController
 {
     public function index(MediaRepository $repository, UniversalDtoMapper $mapper)
     {
-        $rows = $repository->getRows();
+        $rows = $repository->getRowsTraversable();
         $dto = $mapper->map($rows, MediaDto::class, 'media_id');
         return new JsonResponse($dto);
     }
@@ -177,7 +185,69 @@ final class MediaDto implements \JsonSerializable
         ];
     }
 }
+
+final class MediaImageDto implements JsonSerializable
+{
+    #[Identifier]
+    public ?string $id = null;
+
+    #[Column('name')]
+    public ?string $url = null;
+
+    #[Collection(className: TagDto::class, columnPrefix: 'media_image_tag_', naming: Naming::CamelToSnake)]
+    public iterable|null $tag = null;
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'url' => $this->url,
+            'tag' => null === $this->tag ? [] : \array_values(\iterator_to_array($this->tag)),
+        ];
+    }
+}
+
+final class TagDto
+{
+    #[Identifier]
+    public ?string $id = null;
+
+    public ?string $name = null;
+}
+
+final class AuthorDto
+{
+    #[Identifier]
+    public ?string $id = null;
+    public ?string $name = null;
+
+    #[ObjectDto(className: AuthorImageDto::class, columnPrefix: 'author_image_', naming: Naming::CamelToSnake)]
+    public ?AuthorImageDto $image = null;
+}
+
+final class AuthorImageDto implements \JsonSerializable
+{
+    #[Identifier]
+    public ?string $id = null;
+
+    #[Column('name')]
+    public ?string $url = null;
+
+    #[Collection(className: TagDto::class, columnPrefix: 'author_image_tag_', naming: Naming::CamelToSnake)]
+    public iterable|null $tag = null;
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'url' => $this->url,
+            'tag' => null === $this->tag ? [] : \array_values(\iterator_to_array($this->tag)),
+        ];
+    }
+}
 ```
+![DTO class graph map](docs/map_graf_for_example.png)
+
 
 Attribute reference:
 

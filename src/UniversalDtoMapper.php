@@ -6,8 +6,6 @@ namespace ZJKiza\FlatMapper;
 
 use ZJKiza\FlatMapper\Adapter\CollectionAdapter;
 use ZJKiza\FlatMapper\Adapter\ObjectAdapter;
-use ZJKiza\FlatMapper\Attribute\ColumnPrefix;
-use ZJKiza\FlatMapper\Attribute\Identifier;
 use ZJKiza\FlatMapper\Contract\AttributeAdapterInterface;
 use ZJKiza\FlatMapper\Contract\TransformerInterface;
 use ZJKiza\FlatMapper\Contract\NamingStrategyInterface;
@@ -41,12 +39,12 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
     /**
      * @template T of object
      *
-     * @param array<int, array<string, scalar|null>> $rows
+     * @param iterable<int, array<string, scalar|null>> $rows
      * @param class-string<T> $dtoClass
      *
      * @return T[]
      */
-    public function map(array $rows, string $dtoClass, string $rootId): array
+    public function map(iterable $rows, string $dtoClass, string $rootId): array
     {
         $dtoMetadata = MetadataFactory::get($dtoClass);
 
@@ -57,6 +55,7 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
 
         $this->identityMap = new IdentityMap();
 
+        /** @var array<array-key, array<string, scalar|null>>  $grouped */
         $grouped = [];
 
         foreach ($rows as $row) {
@@ -77,6 +76,7 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
         foreach ($grouped as $rowsGroup) {
             $dto = null;
 
+            /** @var array<string, scalar|null> $row */
             foreach ($rowsGroup as $row) {
                 if ($dto === null) {
                     $dto = $this->hydrateScalar($row, $dtoClass);
@@ -185,10 +185,10 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
 
     public function extractIdentifier(object $dto): string
     {
-        $meta = MetadataFactory::get($dto::class);
+        $dtoMetadata = MetadataFactory::get($dto::class);
 
-        foreach ($meta->properties as $property) {
-            if ((bool)$property->getAttributes(Identifier::class)) {
+        foreach ($dtoMetadata->properties as $property) {
+            if ($dtoMetadata->hasIdentifier($property->getName())) {
                 /** @phpstan-ignore-next-line  */
                 return (string)$property->getValue($dto);
             }
@@ -205,12 +205,10 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
         $propertyName = $property->getName();
 
         if ($metadata->hasColumnAttribute($propertyName)) {
-            $columnName = $metadata->getColumnNameFromAttribute($propertyName);
-        } else {
-            $columnName = $namer->convert($propertyName);
+            return $prefix . $metadata->getColumnNameFromAttribute($propertyName);
         }
 
-        return $prefix . $columnName;
+        return $prefix . $namer->convert($propertyName);
     }
 
     /**

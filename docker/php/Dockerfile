@@ -8,6 +8,8 @@ ARG PHP_XDEBUG_REMOTE_PORT=9003
 ARG PHP_XDEBUG_REMOTE_ADDRESS=host.docker.internal
 ARG PHP_XDEBUG_IDEKEY=PHPSTORM
 ARG PHP_IDE_CONFIG="serverName=localhost"
+ARG OPCACHE_ENABLE=1
+ARG OPCACHE_ENABLE_CLI=1
 
 ENV TZ=${SYSTEM_TIMEZONE} \
     COMPOSER_ALLOW_SUPERUSER=1 \
@@ -19,7 +21,9 @@ ENV TZ=${SYSTEM_TIMEZONE} \
     PHP_XDEBUG_REMOTE_ADDRESS=${PHP_XDEBUG_REMOTE_ADDRESS} \
     PHP_XDEBUG_IDEKEY=${PHP_XDEBUG_IDEKEY} \
     PHP_IDE_CONFIG=${PHP_IDE_CONFIG} \
-    SYSTEM_TIMEZONE=${SYSTEM_TIMEZONE}
+    SYSTEM_TIMEZONE=${SYSTEM_TIMEZONE} \
+    OPCACHE_ENABLE_CLI=${OPCACHE_ENABLE_CLI} \
+    OPCACHE_ENABLE=${OPCACHE_ENABLE}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
@@ -60,7 +64,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     soap \
     simplexml \
     pcntl \
-    xsl
+    xsl \
+    opcache
 
 RUN pecl install apcu \
     xdebug \
