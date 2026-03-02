@@ -126,18 +126,32 @@ echo '5000 media with 1 object image and 2 relations of 3 rows of authors and ta
  \benchmark(static function () use ($rows): void {
     $mapper = new UniversalDtoMapper();
     $mapper->map($rows, MediaTestScalarDto::class, 'media_id');
-}, 'Only scalar (Average Time: 0.130 s | The Best: 0.128 s | Memory: 2 MB)');
+}, 'Only scalar');
 
-//for ($i = 0; $i < 10; $i++) {
 \benchmark(static function () use ($rows): void {
     $mapper = new UniversalDtoMapper();
     $mapper->map($rows, MediaTestDto::class, 'media_id');
-}, 'With 1 object image and 2 relations of 3 rows of authors and images (Average Time: 0.607 s | The Best: 0.597 s | Memory: 6 MB)');
-//}
+}, 'With 1 object image and 2 relations of 3 rows of authors and images.');
 
-//for ($i = 0; $i < 10; $i++) {
 \benchmark(static function () use ($rows): void {
     $mapper = new UniversalDtoMapper();
     $mapper->map($rows, MediaTestLazyDto::class, 'media_id');
-}, 'With 1 object image and 2 lazy relations of 3 rows of authors and images (Average Time: 0.385 s | The Best: 0.367 s | Memory: 16 MB)');
-//}
+}, 'With 1 object image and 2 lazy relations of 3 rows of authors and images.');
+
+echo "\n".'Previous tests:';
+echo "\n";
+echo "\n".'Only scalar';
+echo "\n".'Memory: 2 MB';
+echo "\n".'Time: 0.048s - CPU Single Thread Rating 3795'  ;
+echo "\n".'Time: 0.130s - CPU Single Thread Rating 1486'  ;
+echo "\n";
+echo "\n".'With 1 object image and 2 relations of 3 rows of authors and images.';
+echo "\n".'Memory: 6 MB';
+echo "\n".'Time: 0.180s - CPU Single Thread Rating 3795'  ;
+echo "\n".'Time: 0.607s - CPU Single Thread Rating 1486'  ;
+echo "\n";
+echo "\n".'With 1 object image and 2 lazy relations of 3 rows of authors and images.';
+echo "\n".'Memory: 16 MB';
+echo "\n".'Time: 0.111s - CPU Single Thread Rating 3795';
+echo "\n".'Time: 0.385s - CPU Single Thread Rating 1486';
+echo "\n";

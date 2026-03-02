@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1]
+Improved for developers. 
+For developers added:
+- a makefile for those who don't have python v3.10,
+- additional values for container build,
+- .env.dist,
+- speed tests updated with which CPU they were run on.
+
 ## [1.1.0]
 - Micro code optimize
 - Added support that input data besides array can also be Traversable. Support for iterable.
