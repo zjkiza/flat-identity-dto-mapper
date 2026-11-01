@@ -27,6 +27,7 @@
         "phpstan/phpstan": "^1.11",
         "phpstan/phpstan-phpunit": "^1.4",
         "phpstan/phpstan-symfony": "^1.4",
+        "icanhazstring/composer-unused": "^0.9.5",
         "rector/rector": "^1.2",
         "vimeo/psalm": "^6.0",
         "phpunit/phpunit": "^10.5",
@@ -39,10 +40,14 @@
     },
     "scripts": {
         "phpunit": "XDEBUG_MODE=coverage vendor/bin/phpunit --testdox --coverage-html ./build/phpunit",
+        "phpunit-ci": "vendor/bin/phpunit --testdox",
         "phpstan": "vendor/bin/phpstan analyse -v",
         "psalm": "vendor/bin/psalm --threads=8 --no-diff --no-cache",
         "rector": "vendor/bin/rector",
+        "rector-check": "vendor/bin/rector process --dry-run --no-progress-bar",
         "php-cs-fixer": "vendor/bin/php-cs-fixer fix --diff --verbose --show-progress=dots --allow-risky=yes",
+        "php-cs-fixer-check": "vendor/bin/php-cs-fixer fix --dry-run --diff --show-progress=dots --allow-risky=yes",
+        "composer-unused": "vendor/bin/composer-unused",
         "benchmark" : "php tests/Benchmark/benchmark.php"
     }
 }

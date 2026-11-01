@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Functional;
+namespace ZJKiza\FlatMapper\Tests\Functional;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use ZJKiza\FlatMapper\Collection\LazyCollection;
 use ZJKiza\FlatMapper\Exception\InvalidArrayKayException;
 use ZJKiza\FlatMapper\Exception\InvalidAttributeException;
 use ZJKiza\FlatMapper\Tests\Resources\Dto\MediaLazyDto;
@@ -66,16 +67,25 @@ final class MapperTest extends TestCase
         ];
     }
 
-    public function testSuccessWithLazy(): void
+    public function testLazyCollectionIsInitializedOnFirstAccess(): void
     {
-        $expected = __DIR__ . '/../Resources/Data/expected.json';
-        $jsonStringExpected = \file_get_contents($expected);
+        $dtos = $this->mapper->map($this->inputData, MediaLazyDto::class, 'media_id');
 
-        $dto = $this->mapper->map($this->inputData, MediaDto::class, 'media_id');
+        $this->assertNotEmpty($dtos);
 
-        $json = \json_encode($dto, JSON_THROW_ON_ERROR);
+        foreach ($dtos as $dto) {
+            $this->assertInstanceOf(LazyCollection::class, $dto->author);
+            $this->assertFalse($dto->author->isInitialized());
+        }
 
-        $this->assertSame($jsonStringExpected, $json);
+        $json = \json_encode($dtos, JSON_THROW_ON_ERROR);
+
+        $this->assertSame($this->expected, $json);
+
+        foreach ($dtos as $dto) {
+            $this->assertInstanceOf(LazyCollection::class, $dto->author);
+            $this->assertTrue($dto->author->isInitialized());
+        }
     }
 
     public function testExpectExceptionWhenRootIdIsNotExist(): void

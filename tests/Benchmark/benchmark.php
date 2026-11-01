@@ -123,7 +123,7 @@ $rows = \generateRows($items);
 echo "\n".'Benchmarking: 15000 rows to process (5000 media, 500 tags, 500 authors and 500 images)' . "\n";
 echo '5000 media with 1 object image and 2 relations of 3 rows of authors and tags' . "\n\n";
 
- \benchmark(static function () use ($rows): void {
+\benchmark(static function () use ($rows): void {
     $mapper = new UniversalDtoMapper();
     $mapper->map($rows, MediaTestScalarDto::class, 'media_id');
 }, 'Only scalar');

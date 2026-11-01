@@ -9,3 +9,6 @@
 /bin/utility/__pycache__/
 .env
 composer.lock
+
+.continueignore
+.agents-context.md

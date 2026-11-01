@@ -1,5 +1,13 @@
 # Flat Identity DTO Mapper
 
+[![CI](https://github.com/zjkiza/flat-identity-dto-mapper/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/zjkiza/flat-identity-dto-mapper/actions/workflows/ci.yml)
+[![Latest version](https://img.shields.io/packagist/v/zjkiza/flat-identity-dto-mapper)](https://packagist.org/packages/zjkiza/flat-identity-dto-mapper)
+[![PHP version](https://img.shields.io/packagist/dependency-v/zjkiza/flat-identity-dto-mapper/php)](https://packagist.org/packages/zjkiza/flat-identity-dto-mapper)
+[![Downloads](https://img.shields.io/packagist/dt/zjkiza/flat-identity-dto-mapper)](https://packagist.org/packages/zjkiza/flat-identity-dto-mapper/stats)
+[![License](https://img.shields.io/packagist/l/zjkiza/flat-identity-dto-mapper)](LICENSE)
+![PHPStan level max](https://img.shields.io/badge/PHPStan-level%20max-brightgreen)
+![Psalm level 2](https://img.shields.io/badge/Psalm-level%202-brightgreen)
+
 Build rich DTO graphs from flat SQL result sets — without an ORM.
 A high-performance mapper that converts flat database/iterables rows into structured DTO graphs using identity mapping and attribute adapters.
 
@@ -504,3 +512,19 @@ echo json_encode($dto, JSON_THROW_ON_ERROR);
 ## Contribution
 
 Contributions, bug reports and PRs are welcome. Please run the project's test suite and ensure new changes have unit tests.
+
+### Continuous integration
+
+Every push to `main` and every pull request runs [GitHub Actions](https://github.com/zjkiza/flat-identity-dto-mapper/actions/workflows/ci.yml); the badge at the top of this file shows the latest result on `main`.
+
+- **Quality** (PHP 8.2): `composer validate`, `composer-unused`, PHPStan, Psalm, Rector and PHP CS Fixer (check mode).
+- **Tests**: PHPUnit on PHP 8.2, 8.3, 8.4 and 8.5.
+
+You can run the same checks locally in Docker (needs Docker with Compose v2 as `docker-compose`, and Python 3.10+ with `pip install -r bin/requirements.txt`, or `pipenv install` inside `bin/`):
+
+```bash
+python3 bin/ci.py                      # PHP 8.4 (default)
+PHP_VERSION=8.2 python3 bin/ci.py      # any other PHP version
+```
+
+Without Python: `make up`, `make attach`, then `composer run phpunit-ci` (and the other scripts from `composer.json`).

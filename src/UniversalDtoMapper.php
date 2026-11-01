@@ -146,7 +146,7 @@ final class UniversalDtoMapper implements UniversalDtoMapperInterface
             }
 
             if ($dtoMetadata->hasIdentifier($property->getName())) {
-                $id = (string)$value;
+                $id = null === $value ? null : (string)$value;
             }
 
             $value = $this->transformerValue($property, $value, $dtoMetadata);

@@ -36,14 +36,11 @@ class DockerManager:
 
         self.console.print(Markdown('# Running docker containers ...'), width=120, style="green")
 
-        result = subprocess.run(
-            f'docker-compose -f {self.docker_compose_files} up -d --build {"> /dev/null" if not self.verbose else ""}',
-            shell=True,
-            stdout=subprocess.PIPE
-        )
+        result = self.__run_compose(['up', '-d', '--build'])
 
         if result.returncode != 0:
             self.console.print(f'[bold red]ERROR container "{self.docker_compose_files}" failed to start![/bold red]')
+            self.__print_captured_output(result)
             exit(1)
 
         self.is_containers_running()
@@ -52,14 +49,11 @@ class DockerManager:
             self.waiting_database_connection()
 
     def down_container(self) -> None:
-        result = subprocess.run(
-            f'docker-compose -f {self.docker_compose_files} down {"> /dev/null" if not self.verbose else ""}',
-            shell=True,
-            stdout=subprocess.PIPE
-        )
+        result = self.__run_compose(['down'])
 
         if result.returncode != 0:
             self.console.print(f'[bold red]ERROR container "{self.docker_compose_files}" failed to down![/bold red]')
+            self.__print_captured_output(result)
             exit(1)
 
         self.console.print(Markdown('***'), width=120)
@@ -128,15 +122,38 @@ class DockerManager:
                 self.console.print(f'[bold red]Container "{container_name}" not mounted or not found.[/bold red]')
                 exit(1)
 
+    def __run_compose(self, arguments: list[str]) -> subprocess.CompletedProcess:
+        command = ['docker-compose']
+        for compose_file in self.docker_compose_files_list:
+            command += ['-f', compose_file]
+
+        if self.verbose:
+            # Output is inherited from the parent process, so docker progress is streamed live.
+            command += ['--progress', 'plain', *arguments]
+            self.console.print(f'[cyan]$ {" ".join(command)}[/cyan]')
+            return subprocess.run(command)
+
+        # Quiet mode: keep output and show it only when the command fails.
+        return subprocess.run(
+            [*command, *arguments],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True
+        )
+
+    def __print_captured_output(self, result: subprocess.CompletedProcess) -> None:
+        if result.stdout:
+            self.console.print(result.stdout, markup=False, highlight=False)
+
     def __is_container_running(self, container_name: str) -> bool:
         try:
             result = subprocess.run(
-                ['docker', 'ps'],
+                ['docker', 'ps', '--format', '{{.Names}}'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
             )
-            return container_name in result.stdout
+            return container_name in result.stdout.splitlines()
         except Exception as e:
             self.console.print(f'[bold red]Error while checking container status: {e}[/bold red]')
             exit(1)

@@ -1,4 +1,6 @@
-FROM php:8.4-cli
+ARG PHP_VERSION=8.4
+
+FROM php:${PHP_VERSION}-cli
 
 ARG SYSTEM_TIMEZONE=UTC
 ARG APP_ENV=dev
@@ -10,6 +12,8 @@ ARG PHP_XDEBUG_IDEKEY=PHPSTORM
 ARG PHP_IDE_CONFIG="serverName=localhost"
 ARG OPCACHE_ENABLE=1
 ARG OPCACHE_ENABLE_CLI=1
+ARG UID=1000
+ARG GID=1000
 
 ENV TZ=${SYSTEM_TIMEZONE} \
     COMPOSER_ALLOW_SUPERUSER=1 \
@@ -17,7 +21,7 @@ ENV TZ=${SYSTEM_TIMEZONE} \
     PATH=/composer/vendor/bin:$PATH \
     PHP_XDEBUG_ENABLE=${PHP_XDEBUG_ENABLE} \
     PHP_XDEBUG_MODE=${PHP_XDEBUG_MODE} \
-    PHP_XDEBUG_REMOTE_PORT=${PHP_XDEBUG_REMOTE_PORT}\
+    PHP_XDEBUG_REMOTE_PORT=${PHP_XDEBUG_REMOTE_PORT} \
     PHP_XDEBUG_REMOTE_ADDRESS=${PHP_XDEBUG_REMOTE_ADDRESS} \
     PHP_XDEBUG_IDEKEY=${PHP_XDEBUG_IDEKEY} \
     PHP_IDE_CONFIG=${PHP_IDE_CONFIG} \
@@ -47,6 +51,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xsltproc \
     net-tools \
     nano \
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -65,7 +70,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     simplexml \
     pcntl \
     xsl \
-    opcache
+ && (php -m | grep -qi 'zend opcache' || docker-php-ext-install opcache)
+# PHP 8.5+ ships OPcache built into the core, so it must only be installed on older versions.
 
 RUN pecl install apcu \
     xdebug \
@@ -79,16 +85,29 @@ RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
 #   Add GitHub to known hosts
 RUN mkdir -p /root/.ssh \
  && chmod 700 /root/.ssh \
- && ssh-keyscan github.com >> /root/.ssh/known_hosts
+ && ssh-keyscan -H github.com >> /root/.ssh/known_hosts
 
 COPY docker/php/conf /tmp
 RUN chmod +x /tmp/configure.sh && /tmp/configure.sh && rm -rf /tmp/*
-
-WORKDIR /www
-COPY --chown=${LOCAL_USER} . /www
 
 #   Holds a raised container
 COPY docker/php/cmd.sh /usr/local/bin/cmd.sh
 RUN chmod +x /usr/local/bin/cmd.sh
 
-CMD ["/bin/bash", "-c", "/usr/local/bin/cmd.sh"]
+RUN groupadd -g ${GID} app \
+ && useradd -u ${UID} -g app -m app
+
+# COMPOSER_HOME points to /composer, which must be writable by the unprivileged user (cache, global packages).
+RUN mkdir -p /composer \
+ && chown -R app:app /composer
+
+USER app
+
+WORKDIR /www
+
+COPY --chown=app:app composer.json composer.lock* ./
+RUN composer install --no-scripts --no-autoloader
+COPY --chown=app:app . .
+RUN composer dump-autoload --optimize
+
+CMD ["/usr/local/bin/cmd.sh"]

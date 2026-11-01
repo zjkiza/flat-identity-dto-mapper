@@ -1,8 +1,0 @@
-// Test gde je ime u promenljivoj camelCase
-// Test gde je ime u promenljivoj snakeCase
-
-// Test sa novim dodatim transformerom
-// Test kada se poziva transformer koji ne postoji
-
-// Test sa ignore attributom
-
